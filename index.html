@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exploring with Suzie</title>
+  <script>
+    // Kill any hash-scroll before the browser acts on it
+    history.scrollRestoration = 'manual';
+    document.documentElement.style.scrollBehavior = 'auto';
+    window.scrollTo(0, 0);
+    window.addEventListener('load', () => {
+      document.documentElement.style.scrollBehavior = '';
+    });
+  </script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Lato:ital,wght@0,300;0,400;0,700;1,300;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal: #8fc1c1;
+      --sage: #cddfcd;
+      --red: #ef4c4c;
+      --white: #ffffff;
+      --text: #2d2d2d;
+      --muted: #999;
+      --light: #f7f7f7;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Lato', sans-serif;
+      background: var(--white);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    /* ─── NAV ──────────────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.1rem 3.5rem;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(143,193,193,0.12);
+      transition: padding 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    nav.scrolled {
+      padding: 0.7rem 3.5rem;
+      box-shadow: 0 2px 30px rgba(0,0,0,0.06);
+    }
+
+    .nav-logo {
+      font-family: 'Pacifico', cursive;
+      font-size: 1.5rem;
+      color: var(--teal);
+      text-decoration: none;
+      letter-spacing: 0.02em;
+      transition: color 0.2s;
+    }
+    .nav-logo:hover { color: #6fa8a8; }
+
+    .nav-links {
+      display: flex;
+      gap: 2.5rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: #666;
+      font-size: 0.82rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 400;
+      position: relative;
+      transition: color 0.2s;
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -3px; left: 0;
+      width: 0; height: 1.5px;
+      background: var(--teal);
+      transition: width 0.3s ease;
+    }
+
+    .nav-links a:hover { color: var(--teal); }
+    .nav-links a:hover::after { width: 100%; }
+
+    /* Hamburger */
+    .nav-hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      z-index: 2100;
+    }
+
+    .nav-hamburger span {
+      display: block;
+      width: 22px;
+      height: 1.5px;
+      background: var(--text);
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      transform-origin: center;
+    }
+
+    .nav-hamburger.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+    .nav-hamburger.open span:nth-child(2) { opacity: 0; }
+    .nav-hamburger.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+    /* ─── HERO ─────────────────────────────────────────────── */
+    .hero {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      background: var(--white);
+    }
+
+    .hero-orb {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .hero-orb-1 {
+      width: 600px; height: 600px;
+      top: -120px; left: -120px;
+      background: radial-gradient(circle, rgba(143,193,193,0.18) 0%, transparent 70%);
+    }
+    .hero-orb-2 {
+      width: 500px; height: 500px;
+      bottom: -80px; right: -80px;
+      background: radial-gradient(circle, rgba(205,223,205,0.2) 0%, transparent 70%);
+    }
+    .hero-orb-3 {
+      width: 300px; height: 300px;
+      top: 30%; right: 15%;
+      background: radial-gradient(circle, rgba(143,193,193,0.1) 0%, transparent 70%);
+    }
+
+    /* floating dots decoration */
+    .hero-dots {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+    }
+    .dot {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.4;
+      animation: floatDot 6s ease-in-out infinite;
+    }
+    .dot-1 { width: 6px; height: 6px; background: var(--teal); top: 22%; left: 18%; animation-delay: 0s; }
+    .dot-2 { width: 4px; height: 4px; background: var(--sage); top: 65%; left: 12%; animation-delay: 1s; }
+    .dot-3 { width: 8px; height: 8px; background: var(--teal); top: 35%; right: 20%; animation-delay: 2s; opacity: 0.25; }
+    .dot-4 { width: 5px; height: 5px; background: var(--sage); top: 72%; right: 28%; animation-delay: 0.5s; }
+    .dot-5 { width: 4px; height: 4px; background: var(--teal); top: 15%; right: 35%; animation-delay: 1.5s; opacity: 0.3; }
+
+    @keyframes floatDot {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 0 2rem;
+    }
+
+    .hero-eyebrow {
+      font-size: 0.72rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 1.2rem;
+      font-weight: 400;
+    }
+
+    .hero-title {
+      font-family: 'Pacifico', cursive;
+      font-size: clamp(2.8rem, 7.5vw, 6.5rem);
+      color: var(--text);
+      line-height: 1.15;
+      margin-bottom: 1.6rem;
+    }
+
+    .hero-title .accent { color: var(--teal); }
+
+    .hero-subtitle {
+      font-size: 1rem;
+      color: var(--muted);
+      font-weight: 300;
+      letter-spacing: 0.06em;
+      margin-bottom: 2.8rem;
+      font-style: italic;
+    }
+
+    .hero-cta {
+      display: inline-block;
+      padding: 0.85rem 2.8rem;
+      border: 1.5px solid var(--teal);
+      color: var(--teal);
+      font-family: 'Lato', sans-serif;
+      font-size: 0.78rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      text-decoration: none;
+      background: transparent;
+      cursor: pointer;
+      transition: background 0.3s, color 0.3s, transform 0.2s;
+      border-radius: 2px;
+    }
+    .hero-cta:hover {
+      background: var(--teal);
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    .scroll-hint {
+      position: absolute;
+      bottom: 2.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      color: #ccc;
+      font-size: 0.68rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    .scroll-line {
+      width: 1px;
+      height: 40px;
+      background: linear-gradient(to bottom, transparent, var(--teal));
+      animation: scrollLine 1.8s ease-in-out infinite;
+    }
+
+    @keyframes scrollLine {
+      0% { opacity: 0; transform: scaleY(0); transform-origin: top; }
+      50% { opacity: 1; }
+      100% { opacity: 0; transform: scaleY(1); transform-origin: top; }
+    }
+
+    /* ─── SECTION SHARED ────────────────────────────────────── */
+    .section-eyebrow {
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 0.5rem;
+    }
+
+    .section-title {
+      font-family: 'Pacifico', cursive;
+      font-size: 2rem;
+      color: var(--text);
+      line-height: 1.2;
+      margin-bottom: 0.5rem;
+    }
+
+    .section-sub {
+      font-size: 0.88rem;
+      color: var(--muted);
+      font-weight: 300;
+    }
+
+    /* ─── MAP SECTION ───────────────────────────────────────── */
+    .map-section {
+      padding: 5rem 0 5rem;
+      background: var(--white);
+    }
+
+    .map-header {
+      text-align: center;
+      padding: 0 2rem 2rem;
+    }
+
+    /* Filter bar */
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.65rem;
+      padding: 0 1rem 1.8rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #bbb;
+      margin-right: 0.3rem;
+    }
+
+    .filter-btn {
+      padding: 0.45rem 1.4rem;
+      border: 1.5px solid #e0e0e0;
+      background: transparent;
+      font-family: 'Lato', sans-serif;
+      font-size: 0.76rem;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      border-radius: 100px;
+      color: #888;
+      transition: all 0.22s ease;
+      outline: none;
+    }
+
+    .filter-btn:hover {
+      border-color: var(--teal);
+      color: var(--teal);
+      transform: translateY(-1px);
+    }
+
+    .filter-btn.active {
+      background: var(--teal);
+      border-color: var(--teal);
+      color: white;
+    }
+
+    .filter-btn[data-type="Home Base"].active { background: var(--teal); border-color: var(--teal); }
+    .filter-btn[data-type="Culture"].active { background: #a8c5de; border-color: #a8c5de; }
+    .filter-btn[data-type="Food"].active { background: #d4a96a; border-color: #d4a96a; color: white; }
+    .filter-btn[data-type="Adventure"].active { background: var(--sage); border-color: #b2cbb2; color: #4a6a4a; }
+
+    .map-frame {
+      margin: 0 2.5rem;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 8px 50px rgba(0,0,0,0.09);
+      border: 1px solid rgba(143,193,193,0.18);
+      position: relative;
+    }
+
+    #map {
+      width: 100%;
+      height: 70vh;
+      min-height: 480px;
+      display: block;
+    }
+
+    /* Match CartoDB Voyager water tone so no void shows at world edge */
+    .leaflet-container {
+      background: #a8cdd8;
+    }
+
+    /* Scroll-to-interact overlay */
+    .map-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.18);
+      backdrop-filter: blur(1px);
+      -webkit-backdrop-filter: blur(1px);
+      border-radius: 20px;
+      transition: opacity 0.35s ease;
+      cursor: pointer;
+      pointer-events: all;
+    }
+
+    .map-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .map-overlay-pill {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: white;
+      padding: 0.75rem 1.6rem;
+      border-radius: 100px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.14);
+      font-size: 0.82rem;
+      color: #555;
+      letter-spacing: 0.04em;
+      font-family: 'Lato', sans-serif;
+      user-select: none;
+    }
+
+    .map-overlay-pill svg {
+      flex-shrink: 0;
+      color: var(--teal);
+    }
+
+    /* ─── CUSTOM LEAFLET POPUP ─────────────────────────────── */
+    .leaflet-popup-content-wrapper {
+      padding: 0 !important;
+      border-radius: 16px !important;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.08) !important;
+      border: none !important;
+    }
+
+    .leaflet-popup-content {
+      margin: 0 !important;
+      width: 300px !important;
+    }
+
+    .leaflet-popup-tip-container { display: none; }
+
+    /* Coral circle close button */
+    .leaflet-popup-close-button {
+      width: 26px !important;
+      height: 26px !important;
+      background: var(--red) !important;
+      border-radius: 50% !important;
+      color: white !important;
+      font-size: 14px !important;
+      line-height: 26px !important;
+      text-align: center !important;
+      padding: 0 !important;
+      top: 10px !important;
+      right: 10px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      z-index: 10;
+      transition: background 0.2s, transform 0.15s !important;
+      text-decoration: none !important;
+    }
+
+    .leaflet-popup-close-button:hover {
+      background: #d43a3a !important;
+      transform: scale(1.1) !important;
+    }
+
+    /* Photo */
+    .popup-img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      display: block;
+      border-radius: 16px 16px 0 0;
+    }
+
+    /* Body */
+    .popup-inner {
+      padding: 1.1rem 1.2rem 1.3rem;
+      background: white;
+    }
+
+    .popup-location {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.45rem;
+      line-height: 1.3;
+    }
+
+    .popup-desc {
+      font-size: 0.78rem;
+      color: #888;
+      line-height: 1.65;
+      margin-bottom: 0.9rem;
+    }
+
+    .popup-read-more {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      background: none;
+      border: none;
+      padding: 0;
+      font-family: 'Lato', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--red);
+      cursor: pointer;
+      transition: gap 0.2s ease, opacity 0.2s;
+      letter-spacing: 0.02em;
+    }
+
+    .popup-read-more:hover {
+      opacity: 0.75;
+      gap: 0.45rem;
+    }
+
+    /* ─── CUSTOM MARKER ─────────────────────────────────────── */
+    .map-marker {
+      width: 18px;
+      height: 18px;
+      background: var(--red);
+      border-radius: 50%;
+      border: 2.5px solid white;
+      box-shadow: 0 3px 10px rgba(239,76,76,0.45);
+      cursor: pointer;
+      opacity: 0;
+    }
+
+    .map-marker:hover { transform: scale(1.25); }
+
+    .marker-pulse {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 18px; height: 18px;
+      background: rgba(239,76,76,0.25);
+      border-radius: 50%;
+      animation: pulse 2s ease-out infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: translate(-50%,-50%) scale(1); opacity: 0.6; }
+      100% { transform: translate(-50%,-50%) scale(3); opacity: 0; }
+    }
+
+    /* Staggered entrance bounce */
+    @keyframes markerDrop {
+      0%   { opacity: 0; transform: translateY(-22px) scale(0.5); }
+      55%  { opacity: 1; transform: translateY(4px)  scale(1.15); }
+      75%  { transform: translateY(-3px) scale(0.95); }
+      100% { opacity: 1; transform: translateY(0)    scale(1); }
+    }
+
+    .marker-drop {
+      animation: markerDrop 0.55s cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
+    }
+
+
+    /* ─── BLOG SECTION ──────────────────────────────────────── */
+    .blog-section {
+      padding: 6rem 0 7rem;
+      background: var(--white);
+    }
+
+    .blog-header {
+      text-align: center;
+      padding: 0 2rem 3.5rem;
+    }
+
+    .blog-scroll-wrapper {
+      position: relative;
+    }
+
+    .blog-scroll-wrapper::before,
+    .blog-scroll-wrapper::after {
+      content: '';
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 120px;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .blog-scroll-wrapper::before {
+      left: 0;
+      background: linear-gradient(to right, white 30%, transparent);
+    }
+
+    .blog-scroll-wrapper::after {
+      right: 0;
+      background: linear-gradient(to left, white 30%, transparent);
+    }
+
+    .blog-scroll {
+      display: flex;
+      justify-content: center;
+      gap: 2.5rem;
+      padding: 0.5rem 3rem 1.5rem;
+      overflow-x: auto;
+      scrollbar-width: none;
+      scroll-behavior: smooth;
+      cursor: grab;
+    }
+
+    .blog-scroll:active { cursor: grabbing; }
+    .blog-scroll::-webkit-scrollbar { display: none; }
+
+    .blog-card {
+      flex: 0 0 360px;
+      transition: transform 0.3s ease;
+    }
+
+    .blog-card:hover { transform: translateY(-5px); }
+
+    .blog-card-img-wrap {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 1.3rem;
+    }
+
+    .blog-card-img {
+      width: 100%;
+      height: 230px;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.5s ease;
+    }
+
+    .blog-card:hover .blog-card-img { transform: scale(1.04); }
+
+    .blog-card-tag-wrap {
+      position: absolute;
+      top: 14px; left: 14px;
+    }
+
+    .blog-card-tag {
+      font-size: 0.65rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      background: white;
+      color: var(--teal);
+      padding: 0.25rem 0.75rem;
+      border-radius: 100px;
+      font-weight: 700;
+    }
+
+    .blog-card-date {
+      font-size: 0.72rem;
+      color: #ccc;
+      margin-bottom: 0.5rem;
+      letter-spacing: 0.06em;
+    }
+
+    .blog-card-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.45;
+      margin-bottom: 0.7rem;
+    }
+
+    .blog-card-excerpt {
+      font-size: 0.83rem;
+      color: var(--muted);
+      line-height: 1.75;
+      font-weight: 300;
+    }
+
+    .blog-card-read {
+      display: inline-block;
+      margin-top: 1rem;
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--teal);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .blog-card-read:hover {
+      border-color: var(--teal);
+    }
+
+    /* ─── MOBILE ─────────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.5rem; }
+
+      .nav-hamburger { display: flex; }
+
+      .nav-links {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        height: 100vh;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2.5rem;
+        background: rgba(255,255,255,0.97);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        transform: translateX(100%);
+        transition: transform 0.35s ease;
+        z-index: 2000;
+      }
+
+      .nav-links.open { transform: translateX(0); }
+
+      .nav-links a {
+        font-size: 1.1rem;
+        letter-spacing: 0.18em;
+      }
+
+      .blog-scroll {
+        justify-content: flex-start;
+        padding: 0.5rem 1.5rem 1.5rem;
+        gap: 1.5rem;
+      }
+
+      .blog-card {
+        flex: 0 0 82vw;
+      }
+
+      /* Remove side gradients on mobile — they clip visible content */
+      .blog-scroll-wrapper::before,
+      .blog-scroll-wrapper::after {
+        display: none;
+      }
+    }
+
+    /* ─── COMING SOON POPUP ──────────────────────────────────── */
+    .popup-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.25);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 9000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .popup-backdrop.visible {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .popup-box {
+      background: white;
+      border-radius: 20px;
+      padding: 2.8rem 3rem;
+      max-width: 380px;
+      width: calc(100% - 3rem);
+      text-align: center;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.14);
+      transform: translateY(16px) scale(0.97);
+      transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    }
+
+    .popup-backdrop.visible .popup-box {
+      transform: translateY(0) scale(1);
+    }
+
+    .popup-emoji {
+      font-size: 2.4rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    .popup-heading {
+      font-family: 'Pacifico', cursive;
+      font-size: 1.5rem;
+      color: var(--text);
+      margin-bottom: 0.6rem;
+    }
+
+    .popup-message {
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.7;
+      font-weight: 300;
+      margin-bottom: 1.8rem;
+    }
+
+    .popup-close {
+      padding: 0.6rem 2rem;
+      background: var(--teal);
+      color: white;
+      font-family: 'Lato', sans-serif;
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    .popup-close:hover { background: #6fa8a8; transform: translateY(-1px); }
+
+    /* ─── SCROLL REVEAL ─────────────────────────────────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ─── FOOTER ─────────────────────────────────────────────── */
+    .site-footer {
+      background: var(--white);
+      border-top: 3px solid var(--teal);
+      padding: 2.8rem 2rem;
+    }
+    .footer-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .footer-social { display: flex; gap: 1.3rem; align-items: center; }
+    .footer-social-link {
+      color: var(--red);
+      display: flex;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+    .footer-social-link:hover { transform: translateY(-3px); opacity: 0.7; }
+    .footer-copy { font-size: 0.75rem; color: #aaa; letter-spacing: 0.06em; }
+    .footer-top {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      text-decoration: none;
+      color: var(--teal);
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 700;
+      transition: transform 0.2s ease;
+    }
+    .footer-top:hover { transform: translateY(-3px); }
+  </style>
+</head>
+<body>
+
+  <!-- ─── NAVIGATION ─────────────────────────────────────── -->
+  <nav id="navbar">
+    <a href="#" class="nav-logo">suzie</a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#map-section" class="nav-close-link">Places</a></li>
+      <li><a href="blog.html" class="nav-close-link">Journal</a></li>
+      <li><a href="about.html" class="nav-close-link">About</a></li>
+      <li><a href="contact.html" class="nav-close-link">Contact</a></li>
+    </ul>
+    <button class="nav-hamburger" id="navHamburger" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- ─── HERO ──────────────────────────────────────────── -->
+  <section class="hero" id="home">
+    <div class="hero-orb hero-orb-1"></div>
+    <div class="hero-orb hero-orb-2"></div>
+    <div class="hero-orb hero-orb-3"></div>
+    <div class="hero-dots">
+      <div class="dot dot-1"></div>
+      <div class="dot dot-2"></div>
+      <div class="dot dot-3"></div>
+      <div class="dot dot-4"></div>
+      <div class="dot dot-5"></div>
+    </div>
+    <div class="hero-content">
+      <p class="hero-eyebrow">a travel journal</p>
+      <h1 class="hero-title">Exploring<br>with <span class="accent">Suzie</span></h1>
+      <p class="hero-subtitle">One passport. Endless stories.</p>
+      <a href="#map-section" class="hero-cta">See the map</a>
+    </div>
+    <div class="scroll-hint">
+      <span>scroll</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- ─── MAP SECTION ───────────────────────────────────── -->
+  <section class="map-section" id="map-section">
+    <div class="map-header">
+      <p class="section-eyebrow">the journey so far</p>
+      <h2 class="section-title">Places I've called mine</h2>
+      <p class="section-sub">Click any pin to peek inside the memory.</p>
+    </div>
+
+    <div class="filter-bar">
+      <span class="filter-label">Filter by</span>
+      <button class="filter-btn active" data-type="All">All</button>
+      <button class="filter-btn" data-type="Home Base">Home Base</button>
+      <button class="filter-btn" data-type="Culture">Culture</button>
+      <button class="filter-btn" data-type="Food">Food</button>
+      <button class="filter-btn" data-type="Adventure">Adventure</button>
+    </div>
+
+    <div class="map-frame">
+      <div id="map"></div>
+      <div class="map-overlay" id="mapOverlay">
+        <div class="map-overlay-pill">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+          Click to explore the map
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── BLOG SECTION ──────────────────────────────────── -->
+  <section class="blog-section" id="journal">
+    <div class="blog-header">
+      <p class="section-eyebrow">latest from the journal</p>
+      <h2 class="section-title">Recent stories</h2>
+      <p class="section-sub">Drag to explore — there are more where these came from.</p>
+    </div>
+
+    <div class="blog-scroll-wrapper">
+      <div class="blog-scroll" id="blogScroll">
+
+        <article class="blog-card">
+          <div class="blog-card-img-wrap">
+            <img class="blog-card-img"
+              src="https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=720&auto=format&fit=crop&q=80"
+              alt="Bali Rice Terraces" />
+            <div class="blog-card-tag-wrap"><span class="blog-card-tag">Adventure</span></div>
+          </div>
+          <p class="blog-card-date">June 15, 2024</p>
+          <h3 class="blog-card-title">Rice Terraces at Dawn: A Morning in Bali I'll Never Forget</h3>
+          <p class="blog-card-excerpt">I set my alarm for 4:30am — something I rarely do voluntarily. But Tegalalang doesn't wait for lazy travelers, and the light that spills across those sculpted green steps in the first hour after sunrise is unlike anything I've witnessed elsewhere on this earth.</p>
+          <a href="#" class="blog-card-read">Read more →</a>
+        </article>
+
+        <article class="blog-card">
+          <div class="blog-card-img-wrap">
+            <img class="blog-card-img"
+              src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=720&auto=format&fit=crop&q=80"
+              alt="Tokyo Cherry Blossoms" />
+            <div class="blog-card-tag-wrap"><span class="blog-card-tag">Culture</span></div>
+          </div>
+          <p class="blog-card-date">March 28, 2024</p>
+          <h3 class="blog-card-title">Tokyo in Bloom: Two Weeks Under the Cherry Blossoms</h3>
+          <p class="blog-card-excerpt">Every year, Japan holds its breath. Meteorologists track cold fronts, park benches fill up with reservation stakes, and the entire country quietly rearranges its schedule around the life of a flower. I had two weeks, and I gave them entirely to sakura season.</p>
+          <a href="#" class="blog-card-read">Read more →</a>
+        </article>
+
+        <article class="blog-card">
+          <div class="blog-card-img-wrap">
+            <img class="blog-card-img"
+              src="https://images.unsplash.com/photo-1512003867696-6d5ce6835040?w=720&auto=format&fit=crop&q=80"
+              alt="Bangkok Street Food" />
+            <div class="blog-card-tag-wrap"><span class="blog-card-tag">Food</span></div>
+          </div>
+          <p class="blog-card-date">November 18, 2023</p>
+          <h3 class="blog-card-title">The $3 Meal That Changed How I Think About Food</h3>
+          <p class="blog-card-excerpt">It was 7am on a Tuesday in Bangkok's Chinatown. I was running on four hours of sleep and the kind of hunger that bypasses reason. A woman with a cart, a blazing wok, and thirty years of practice handed me a bowl of pad see ew that I am still thinking about.</p>
+          <a href="#" class="blog-card-read">Read more →</a>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── COMING SOON POPUP ──────────────────────────────── -->
+  <div class="popup-backdrop" id="comingSoonBackdrop">
+    <div class="popup-box">
+      <span class="popup-emoji">✈️</span>
+      <h2 class="popup-heading">Full posts coming soon</h2>
+      <p class="popup-message">Suzie is still writing up this one — check back soon for the full story.</p>
+      <button class="popup-close" id="popupClose">Got it</button>
+    </div>
+  </div>
+
+  <!-- ─── FOOTER ─────────────────────────────────────────── -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-social">
+        <a href="#" class="footer-social-link" aria-label="Instagram"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
+        <a href="#" class="footer-social-link" aria-label="YouTube"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+        <a href="#" class="footer-social-link" aria-label="Twitter / X"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+      </div>
+      <p class="footer-copy">© 2025 Wander With Suzy</p>
+      <a href="#" class="footer-top" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg> Back to top</a>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    // ── NAV scroll effect ────────────────────────────────────
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      navbar.classList.toggle('scrolled', window.scrollY > 60);
+    });
+
+    // ── Hamburger toggle ─────────────────────────────────────
+    const hamburger = document.getElementById('navHamburger');
+    const navLinks  = document.getElementById('navLinks');
+
+    hamburger.addEventListener('click', () => {
+      hamburger.classList.toggle('open');
+      navLinks.classList.toggle('open');
+    });
+
+    document.querySelectorAll('.nav-close-link').forEach(link => {
+      link.addEventListener('click', () => {
+        hamburger.classList.remove('open');
+        navLinks.classList.remove('open');
+      });
+    });
+
+    // ── Location data ────────────────────────────────────────
+    const locations = [
+      {
+        country: 'Portugal',
+        city: 'Lisbon',
+        lat: 38.7223, lng: -9.1393,
+        tagline: 'Where it all began. Pastéis de nata and golden-hour sunsets over the Tagus.',
+        type: 'Home Base',
+        date: 'Always home',
+        description: 'There\'s a word in Portuguese — saudade — that Lisbon teaches you to feel. This city held me like an old friend, salt air and fado drifting through tiled alleyways. It\'s the place I return to in my chest whenever the world gets too loud.',
+        img: 'https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=640&auto=format&fit=crop&q=80'
+      },
+      {
+        country: 'Japan',
+        city: 'Tokyo',
+        lat: 35.6762, lng: 139.6503,
+        tagline: 'Cherry blossoms and beautiful, controlled chaos.',
+        type: 'Culture',
+        date: 'March 2024',
+        description: 'The city pulses at frequencies you can\'t quite name. Between the neon and the temple gardens, between the crowds and the pockets of absolute silence, I found something I\'d been searching for without knowing exactly what it was.',
+        img: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=640&auto=format&fit=crop&q=80'
+      },
+      {
+        country: 'Thailand',
+        city: 'Bangkok',
+        lat: 13.7563, lng: 100.5018,
+        tagline: 'Street food heaven. Every corner is a new flavor.',
+        type: 'Food',
+        date: 'November 2023',
+        description: 'Bangkok doesn\'t ease you in. It grabs you by the collar and shows you exactly what life tastes like — spicy, loud, vibrant, and entirely alive. I ate myself through entire neighbourhoods and still didn\'t scratch the surface.',
+        img: 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=640&auto=format&fit=crop&q=80'
+      },
+      {
+        country: 'Morocco',
+        city: 'Marrakech',
+        lat: 31.6295, lng: -7.9811,
+        tagline: 'The souks, the colors, the glorious madness of Jemaa el-Fna.',
+        type: 'Adventure',
+        date: 'January 2024',
+        description: 'I got lost seventeen times in the medina and I have exactly zero regrets about any of them. Each wrong turn led somewhere more beautiful than the last — a doorway of carved cedar, a courtyard full of orange trees, a man brewing mint tea over a single flame.',
+        img: 'https://images.unsplash.com/photo-1539020140153-e479b8c22e70?w=640&auto=format&fit=crop&q=80'
+      },
+      {
+        country: 'Italy',
+        city: 'Amalfi Coast',
+        lat: 40.6340, lng: 14.6027,
+        tagline: 'Lemon trees, cliffside drives, and the bluest water on earth.',
+        type: 'Culture',
+        date: 'August 2023',
+        description: 'The coast curves like a promise. Lemon groves cascade down to turquoise water, and somewhere above you, an Italian grandmother is almost certainly making something extraordinary. The cliffside drives are terrifying in the very best way.',
+        img: 'https://images.unsplash.com/photo-1534445867742-43195f401b6c?w=640&auto=format&fit=crop&q=80'
+      },
+      {
+        country: 'Vietnam',
+        city: 'Hanoi',
+        lat: 21.0278, lng: 105.8342,
+        tagline: 'Motorbikes, steaming pho, and old quarter magic at 6am.',
+        type: 'Food',
+        date: 'October 2023',
+        description: 'Hanoi is best experienced at dawn, when the city belongs to the elderly doing tai chi by the lake and the phở vendors stirring broth that\'s been simmering since yesterday. Everything that comes after is just beautiful noise by comparison.',
+        img: 'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=640&auto=format&fit=crop&q=80'
+      },
+      {
+        country: 'Greece',
+        city: 'Santorini',
+        lat: 36.3932, lng: 25.4615,
+        tagline: 'Blue domes and impossible sunsets. Yes, it\'s as beautiful as the photos.',
+        type: 'Culture',
+        date: 'June 2024',
+        description: 'I told myself I\'d resist the clichés. I did not resist the clichés. The blue domes, the white walls, the horizon turning pink and gold over the caldera — some things are famous because they deserve to be. I\'m not even sorry.',
+        img: 'https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=640&auto=format&fit=crop&q=80'
+      },
+      {
+        country: 'Indonesia',
+        city: 'Bali',
+        lat: -8.3405, lng: 115.0920,
+        tagline: 'Rice terraces at dawn, temple incense, and surf at sunset.',
+        type: 'Adventure',
+        date: 'February 2024',
+        description: 'The island breathes. You feel it in the rice terraces at first light, in the incense curling through stone temple gates, in the way the ocean pulls everything unnecessary away. Bali has a way of returning you to yourself.',
+        img: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=640&auto=format&fit=crop&q=80'
+      },
+      {
+        country: 'France',
+        city: 'Paris',
+        lat: 48.8566, lng: 2.3522,
+        tagline: 'Croissants, cobblestones, and a beauty that makes you understand why everyone keeps coming back.',
+        type: 'Culture',
+        date: 'May 2023',
+        description: 'Paris has been written about so many times I almost didn\'t bother. Then I sat by the Seine at dusk with a glass of wine and watched the city turn gold, and I understood everything immediately.',
+        img: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=640&auto=format&fit=crop&q=80'
+      },
+      {
+        country: 'Peru',
+        city: 'Machu Picchu',
+        lat: -13.1631, lng: -72.5450,
+        tagline: 'Above the clouds, between the mountains, in a city that shouldn\'t exist — but does.',
+        type: 'Adventure',
+        date: 'September 2023',
+        description: 'Nothing prepares you for Machu Picchu. Not the photos, not the documentaries, not the four-hour bus ride up a switchback road. You turn a corner and there it is, and your brain simply refuses to process it at first.',
+        img: 'https://images.unsplash.com/photo-1526392060635-9d6019884377?w=640&auto=format&fit=crop&q=80'
+      },
+      {
+        country: 'India',
+        city: 'Jaipur',
+        lat: 26.9124, lng: 75.7873,
+        tagline: 'The Pink City lives up to every shade of its name. Chaotic, gorgeous, unforgettable.',
+        type: 'Culture',
+        date: 'December 2023',
+        description: 'Jaipur assaults the senses in the best possible way — marigold garlands, spice markets, forts rising from hilltops in shades of rose and amber. I arrived overwhelmed and left completely converted.',
+        img: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=640&auto=format&fit=crop&q=80'
+      },
+      {
+        country: 'Mexico',
+        city: 'Mexico City',
+        lat: 19.4326, lng: -99.1332,
+        tagline: 'The world\'s best tacos at 2am. I will die on this hill.',
+        type: 'Food',
+        date: 'April 2024',
+        description: 'Mexico City rewrote every preconception I had. The food alone is worth crossing an ocean for — tacos al pastor, mole negro, tlayudas the size of your face. The museums aren\'t bad either.',
+        img: 'https://images.unsplash.com/photo-1518659526054-190340b32735?w=640&auto=format&fit=crop&q=80'
+      },
+      {
+        country: 'Iceland',
+        city: 'Reykjavik',
+        lat: 64.1355, lng: -21.8954,
+        tagline: 'Waterfalls, hot springs, and skies that glow green at midnight. Iceland is not real.',
+        type: 'Adventure',
+        date: 'January 2024',
+        description: 'I went for the Northern Lights and stayed for everything else — geothermal pools, black sand beaches, the fact that in January the sun barely clears the horizon and somehow that\'s beautiful rather than depressing.',
+        img: 'https://images.unsplash.com/photo-1531168556467-80aace0d0144?w=640&auto=format&fit=crop&q=80'
+      },
+      {
+        country: 'Colombia',
+        city: 'Cartagena',
+        lat: 10.3910, lng: -75.4794,
+        tagline: 'The most colourful city on earth, where every wall is a painting and the heat is a warm embrace.',
+        type: 'Culture',
+        date: 'March 2023',
+        description: 'Cartagena\'s old city is an almost unreasonable concentration of beauty — bougainvillea spilling over balconies in every warm colour imaginable, salsa drifting from open doors, the Caribbean just beyond the walls.',
+        img: 'https://images.unsplash.com/photo-1527082395-049e1c5e5225?w=640&auto=format&fit=crop&q=80'
+      },
+      {
+        country: 'Taiwan',
+        city: 'Taipei',
+        lat: 25.0330, lng: 121.5654,
+        tagline: 'Night markets, scallion pancakes, and the most underrated food scene on the planet.',
+        type: 'Food',
+        date: 'July 2024',
+        description: 'Taipei doesn\'t get the food credit it deserves. Shilin Night Market at 10pm, bowl of beef noodle soup in hand, surrounded by the warm noise of a city that knows exactly how to eat — this is what travel is for.',
+        img: 'https://images.unsplash.com/photo-1470004914212-05527e49370b?w=640&auto=format&fit=crop&q=80'
+      },
+      {
+        country: 'Turkey',
+        city: 'Istanbul',
+        lat: 41.0082, lng: 28.9784,
+        tagline: 'A city that sits between two continents and belongs entirely to itself.',
+        type: 'Culture',
+        date: 'May 2024',
+        description: 'Istanbul is where East meets West in the most literal sense. The Grand Bazaar, the Hagia Sophia, the call to prayer echoing across the Bosphorus at dawn. It is one of the great cities of the world, full stop.',
+        img: 'https://images.unsplash.com/photo-1527838832700-5059252407fa?w=640&auto=format&fit=crop&q=80'
+      }
+    ];
+
+    // ── Init map ─────────────────────────────────────────────
+    const worldBounds = L.latLngBounds(L.latLng(-85, -180), L.latLng(85, 180));
+
+    // At zoom Z the world is 256×2^Z px wide. Solve for Z where world >= container.
+    function calcMinZoom() {
+      return Math.ceil(Math.log2(document.getElementById('map').offsetWidth / 256) * 10) / 10;
+    }
+
+    const map = L.map('map', {
+      minZoom: calcMinZoom(),
+      maxZoom: 12,
+      maxBounds: worldBounds,
+      maxBoundsViscosity: 1.0,
+      zoomControl: true,
+      scrollWheelZoom: false   // disabled until user clicks in
+    });
+
+    // Click-to-activate scroll zoom
+    const mapOverlay = document.getElementById('mapOverlay');
+
+    mapOverlay.addEventListener('click', e => {
+      e.stopPropagation();
+      mapOverlay.classList.add('hidden');
+      map.scrollWheelZoom.enable();
+    });
+
+    document.addEventListener('click', e => {
+      if (!document.querySelector('.map-frame').contains(e.target)) {
+        mapOverlay.classList.remove('hidden');
+        map.scrollWheelZoom.disable();
+      }
+    });
+
+    // Re-enforce minZoom when the window is resized
+    window.addEventListener('resize', () => {
+      const z = calcMinZoom();
+      map.setMinZoom(z);
+      if (map.getZoom() < z) map.setZoom(z);
+    });
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 19,
+      noWrap: true
+    }).addTo(map);
+
+    // ── Custom marker factory ────────────────────────────────
+    function createMarkerIcon() {
+      return L.divIcon({
+        className: '',
+        html: `<div style="position:relative;width:18px;height:18px;">
+                 <div class="marker-pulse"></div>
+                 <div class="map-marker"></div>
+               </div>`,
+        iconSize: [18, 18],
+        iconAnchor: [9, 9],
+        popupAnchor: [0, -14]
+      });
+    }
+
+    // ── Popup HTML builder ───────────────────────────────────
+    function buildPopup(loc) {
+      return `
+        <img class="popup-img" src="${loc.img}" alt="${loc.city}" />
+        <div class="popup-inner">
+          <p class="popup-location">${loc.city}, ${loc.country}</p>
+          <p class="popup-desc">${loc.tagline}</p>
+          <button class="popup-read-more" onclick="document.getElementById('comingSoonBackdrop').classList.add('visible')">
+            Read More &rarr;
+          </button>
+        </div>
+      `;
+    }
+
+    // Tracks whether the map is mid-flyTo so zoom events don't
+    // mistakenly close the popup during the programmatic animation.
+    let isFlying = false;
+
+    map.on('zoomstart', () => {
+      if (!isFlying) map.closePopup();
+    });
+
+    // ── Place markers ─────────────────────────────────────────
+    const markers = locations.map(loc => {
+      const marker = L.marker([loc.lat, loc.lng], { icon: createMarkerIcon() });
+
+      const popup = L.popup({ maxWidth: 300, className: 'suzie-popup' })
+        .setContent(buildPopup(loc))
+        .setLatLng([loc.lat, loc.lng]);
+
+      marker.on('click', () => {
+        map.closePopup();
+        isFlying = true;
+        map.flyTo([loc.lat, loc.lng], 6, { animate: true, duration: 1.2 });
+        map.once('moveend', () => {
+          isFlying = false;
+          popup.openOn(map);
+        });
+      });
+
+      marker._locType = loc.type;
+      marker.addTo(map);
+      return marker;
+    });
+
+    // Fit view to show all pins with padding, capped at zoom 4
+    const allGroup = L.featureGroup(markers);
+    map.fitBounds(allGroup.getBounds().pad(0.18), { maxZoom: 4 });
+
+    // Staggered bounce entrance after markers are in the DOM
+    setTimeout(() => {
+      markers.forEach((m, i) => {
+        const el = m.getElement ? m.getElement() : null;
+        if (!el) return;
+        const inner = el.querySelector('.map-marker');
+        if (inner) setTimeout(() => inner.classList.add('marker-drop'), i * 110);
+      });
+    }, 400);
+
+    // ── Filter logic ─────────────────────────────────────────
+    const filterBtns = document.querySelectorAll('.filter-btn');
+
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const type = btn.dataset.type;
+
+        markers.forEach(m => {
+          if (type === 'All' || m._locType === type) {
+            if (!map.hasLayer(m)) map.addLayer(m);
+          } else {
+            if (map.hasLayer(m)) map.removeLayer(m);
+          }
+        });
+      });
+    });
+
+    // ── Blog drag-to-scroll ──────────────────────────────────
+    const scroll = document.getElementById('blogScroll');
+    let isDown = false, startX, scrollLeft;
+
+    scroll.addEventListener('mousedown', e => {
+      isDown = true;
+      scroll.style.cursor = 'grabbing';
+      startX = e.pageX - scroll.offsetLeft;
+      scrollLeft = scroll.scrollLeft;
+    });
+
+    scroll.addEventListener('mouseleave', () => {
+      isDown = false;
+      scroll.style.cursor = 'grab';
+    });
+
+    scroll.addEventListener('mouseup', () => {
+      isDown = false;
+      scroll.style.cursor = 'grab';
+    });
+
+    scroll.addEventListener('mousemove', e => {
+      if (!isDown) return;
+      e.preventDefault();
+      const x = e.pageX - scroll.offsetLeft;
+      const walk = (x - startX) * 1.4;
+      scroll.scrollLeft = scrollLeft - walk;
+    });
+
+    // ── Coming soon popup ────────────────────────────────────
+    const backdrop  = document.getElementById('comingSoonBackdrop');
+    const popupClose = document.getElementById('popupClose');
+
+    function showPopup(e) {
+      e.preventDefault();
+      backdrop.classList.add('visible');
+    }
+
+    function hidePopup() {
+      backdrop.classList.remove('visible');
+    }
+
+    document.querySelectorAll('.blog-card-read').forEach(link => {
+      link.addEventListener('click', showPopup);
+    });
+
+    popupClose.addEventListener('click', hidePopup);
+    backdrop.addEventListener('click', e => {
+      if (e.target === backdrop) hidePopup();
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') hidePopup();
+    });
+
+    // ── Scroll reveal ─────────────────────────────────────────
+    document.querySelectorAll(
+      '.section-eyebrow, .section-title, .section-sub, .filter-bar, .blog-card'
+    ).forEach(el => el.classList.add('reveal'));
+
+    const revealObs = new IntersectionObserver((entries) => {
+      let delay = 0;
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const d = delay;
+          setTimeout(() => entry.target.classList.add('visible'), d);
+          delay += 80;
+          revealObs.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+  </script>
+</body>
+</html>
