@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About — Exploring with Suzie</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Fredoka+One&family=Lato:ital,wght@0,300;0,400;0,700;1,300;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal: #8fc1c1;
+      --sage: #cddfcd;
+      --red: #ef4c4c;
+      --white: #ffffff;
+      --text: #2d2d2d;
+      --muted: #999;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Lato', sans-serif;
+      background: var(--white);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    /* ─── NAV ──────────────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.1rem 3.5rem;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(143,193,193,0.12);
+      transition: padding 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    nav.scrolled {
+      padding: 0.7rem 3.5rem;
+      box-shadow: 0 2px 30px rgba(0,0,0,0.06);
+    }
+
+    .nav-logo {
+      font-family: 'Pacifico', cursive;
+      font-size: 1.5rem;
+      color: var(--teal);
+      text-decoration: none;
+      letter-spacing: 0.02em;
+      transition: color 0.2s;
+    }
+    .nav-logo:hover { color: #6fa8a8; }
+
+    .nav-links {
+      display: flex;
+      gap: 2.5rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: #666;
+      font-size: 0.82rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 400;
+      position: relative;
+      transition: color 0.2s;
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -3px; left: 0;
+      width: 0; height: 1.5px;
+      background: var(--teal);
+      transition: width 0.3s ease;
+    }
+
+    .nav-links a:hover { color: var(--teal); }
+    .nav-links a:hover::after { width: 100%; }
+    .nav-links a.active { color: var(--teal); }
+    .nav-links a.active::after { width: 100%; }
+
+    .nav-hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      z-index: 2100;
+    }
+
+    .nav-hamburger span {
+      display: block;
+      width: 22px;
+      height: 1.5px;
+      background: var(--text);
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      transform-origin: center;
+    }
+
+    .nav-hamburger.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+    .nav-hamburger.open span:nth-child(2) { opacity: 0; }
+    .nav-hamburger.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+    /* ─── PAGE HEADER ───────────────────────────────────────── */
+    .page-header {
+      padding: 9rem 2rem 4rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .page-header::before {
+      content: '';
+      position: absolute;
+      width: 600px; height: 600px;
+      top: -150px; left: -100px;
+      background: radial-gradient(circle, rgba(143,193,193,0.14) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .page-header::after {
+      content: '';
+      position: absolute;
+      width: 400px; height: 400px;
+      bottom: -60px; right: -60px;
+      background: radial-gradient(circle, rgba(205,223,205,0.18) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .page-header-eyebrow {
+      font-size: 0.72rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 0.8rem;
+    }
+
+    .page-header-title {
+      font-family: 'Pacifico', cursive;
+      font-size: clamp(2.4rem, 5vw, 4rem);
+      color: var(--text);
+      margin-bottom: 1rem;
+      position: relative;
+    }
+
+    .page-header-sub {
+      font-size: 0.95rem;
+      color: var(--muted);
+      font-weight: 300;
+      font-style: italic;
+    }
+
+    /* ─── ABOUT LAYOUT ──────────────────────────────────────── */
+    .about-section {
+      padding: 3rem 5rem 8rem;
+      max-width: 1300px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1px 1fr;
+      gap: 0 5rem;
+      align-items: start;
+    }
+
+    /* ─── LEFT: STORY ───────────────────────────────────────── */
+    .about-left {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .about-photo-wrap {
+      position: relative;
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .about-photo {
+      width: 100%;
+      height: 460px;
+      object-fit: cover;
+      object-position: center top;
+      display: block;
+      transition: transform 0.6s ease;
+    }
+
+    .about-photo-wrap:hover .about-photo { transform: scale(1.03); }
+
+    /* small accent badge over photo */
+    .about-photo-badge {
+      position: absolute;
+      bottom: 18px; left: 18px;
+      background: white;
+      border-radius: 100px;
+      padding: 0.45rem 1.1rem;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--teal);
+      font-weight: 700;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    }
+
+    .about-name {
+      font-family: 'Pacifico', cursive;
+      font-size: 1.9rem;
+      color: var(--text);
+      margin-bottom: 0.3rem;
+    }
+
+    .about-tagline {
+      font-size: 0.78rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 1.2rem;
+    }
+
+    .about-story p {
+      font-size: 0.92rem;
+      color: #666;
+      line-height: 1.9;
+      font-weight: 300;
+      margin-bottom: 1.1rem;
+    }
+
+    .about-story p:last-child { margin-bottom: 0; }
+
+    .about-story strong {
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .about-signature {
+      font-family: 'Pacifico', cursive;
+      font-size: 1.6rem;
+      color: var(--teal);
+      margin-top: 0.5rem;
+    }
+
+    /* ─── DIVIDER ───────────────────────────────────────────── */
+    .about-divider {
+      width: 1px;
+      align-self: stretch;
+      background: linear-gradient(to bottom,
+        transparent 0%,
+        var(--teal) 15%,
+        var(--sage) 50%,
+        var(--teal) 85%,
+        transparent 100%
+      );
+    }
+
+    /* ─── RIGHT: STATS ──────────────────────────────────────── */
+    .about-right {
+      padding-top: 0.5rem;
+    }
+
+    .stats-eyebrow {
+      font-size: 0.7rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 0.5rem;
+    }
+
+    .stats-heading {
+      font-family: 'Pacifico', cursive;
+      font-size: 1.6rem;
+      color: var(--text);
+      margin-bottom: 0.4rem;
+    }
+
+    .stats-sub {
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-weight: 300;
+      font-style: italic;
+      margin-bottom: 2.8rem;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2.2rem 1.5rem;
+    }
+
+    .stat-card {
+      position: relative;
+      padding: 1.6rem 1.4rem 1.4rem;
+      border-radius: 16px;
+      background: #fafafa;
+      border: 1px solid rgba(143,193,193,0.15);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 3px;
+      height: 100%;
+      background: linear-gradient(to bottom, var(--teal), var(--sage));
+      border-radius: 16px 0 0 16px;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 30px rgba(143,193,193,0.18);
+    }
+
+    .stat-number {
+      font-family: 'Fredoka One', cursive;
+      font-size: 3rem;
+      line-height: 1;
+      margin-bottom: 0.35rem;
+      background: linear-gradient(135deg, var(--teal) 0%, #6aabab 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* alternate accent colours for variety */
+    .stat-card:nth-child(3n) .stat-number {
+      background: linear-gradient(135deg, #b8d4a0 0%, var(--sage) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+    }
+
+    .stat-card:nth-child(5n) .stat-number {
+      background: linear-gradient(135deg, #ef8c8c 0%, var(--red) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+    }
+
+    .stat-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.04em;
+      margin-bottom: 0.2rem;
+    }
+
+    .stat-note {
+      font-size: 0.7rem;
+      color: #bbb;
+      font-weight: 300;
+      font-style: italic;
+    }
+
+    /* ─── QUOTE BAND ────────────────────────────────────────── */
+    .quote-band {
+      margin-top: 8rem;
+      padding: 5rem 2rem;
+      text-align: center;
+      background: linear-gradient(135deg, rgba(143,193,193,0.08) 0%, rgba(205,223,205,0.12) 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .quote-band::before {
+      content: '\201C';
+      position: absolute;
+      top: -1rem; left: 3rem;
+      font-family: 'Pacifico', cursive;
+      font-size: 14rem;
+      color: rgba(143,193,193,0.08);
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .quote-text {
+      font-family: 'Pacifico', cursive;
+      font-size: clamp(1.2rem, 3vw, 2rem);
+      color: var(--text);
+      max-width: 800px;
+      margin: 0 auto 1.2rem;
+      line-height: 1.5;
+    }
+
+    .quote-attr {
+      font-size: 0.78rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--teal);
+    }
+
+    /* ─── SCROLL REVEAL ─────────────────────────────────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ─── FOOTER ─────────────────────────────────────────────── */
+    .site-footer {
+      background: var(--white);
+      border-top: 3px solid var(--teal);
+      padding: 2.8rem 2rem;
+    }
+    .footer-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .footer-social { display: flex; gap: 1.3rem; align-items: center; }
+    .footer-social-link {
+      color: var(--red);
+      display: flex;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+    .footer-social-link:hover { transform: translateY(-3px); opacity: 0.7; }
+    .footer-copy { font-size: 0.75rem; color: #aaa; letter-spacing: 0.06em; }
+    .footer-top {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      text-decoration: none;
+      color: var(--teal);
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 700;
+      transition: transform 0.2s ease;
+    }
+    .footer-top:hover { transform: translateY(-3px); }
+
+    /* ─── MOBILE ─────────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .about-section {
+        grid-template-columns: 1fr;
+        padding: 2rem 2rem 6rem;
+        gap: 0;
+      }
+
+      .about-divider {
+        width: 100%;
+        height: 1px;
+        align-self: auto;
+        margin: 3rem 0;
+        background: linear-gradient(to right,
+          transparent 0%,
+          var(--teal) 20%,
+          var(--sage) 50%,
+          var(--teal) 80%,
+          transparent 100%
+        );
+      }
+    }
+
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.5rem; }
+      .nav-hamburger { display: flex; }
+
+      .nav-links {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        height: 100vh;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2.5rem;
+        background: rgba(255,255,255,0.97);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        transform: translateX(100%);
+        transition: transform 0.35s ease;
+        z-index: 2000;
+      }
+
+      .nav-links.open { transform: translateX(0); }
+      .nav-links a { font-size: 1.1rem; letter-spacing: 0.18em; }
+
+      .about-section { padding: 2rem 1.5rem 5rem; }
+      .stats-grid { gap: 1.4rem 1rem; }
+      .stat-number { font-size: 2.4rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── NAV ───────────────────────────────────────────────── -->
+  <nav id="navbar">
+    <a href="index.html" class="nav-logo">suzie</a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html#map-section" class="nav-close-link">Places</a></li>
+      <li><a href="blog.html" class="nav-close-link">Journal</a></li>
+      <li><a href="about.html" class="nav-close-link active">About</a></li>
+      <li><a href="contact.html" class="nav-close-link">Contact</a></li>
+    </ul>
+    <button class="nav-hamburger" id="navHamburger" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- ─── PAGE HEADER ─────────────────────────────────────────── -->
+  <header class="page-header">
+    <p class="page-header-eyebrow">the person behind the passport</p>
+    <h1 class="page-header-title">About Suzie</h1>
+    <p class="page-header-sub">A girl, a bag, and a relentless curiosity about what's around the next corner.</p>
+  </header>
+
+  <!-- ─── ABOUT CONTENT ───────────────────────────────────────── -->
+  <section class="about-section">
+
+    <!-- LEFT: STORY -->
+    <div class="about-left">
+      <div class="about-photo-wrap">
+        <img class="about-photo"
+          src="https://images.unsplash.com/photo-1530789253388-582c481c54b0?w=800&auto=format&fit=crop&q=80"
+          alt="Suzie, travel blogger" />
+        <span class="about-photo-badge">Lisbon, Portugal — Home Base</span>
+      </div>
+
+      <div>
+        <h2 class="about-name">Hi, I'm Suzie.</h2>
+        <p class="about-tagline">Travel writer · Storyteller · Perpetual wanderer</p>
+
+        <div class="about-story">
+          <p>
+            It started with a <strong>one-way ticket to Lisbon</strong> that I bought on a Tuesday afternoon when I really should have been doing something more responsible. I had a small bag, a rough idea of what I was doing, and absolutely no plan beyond the first week. That was four years ago. I never quite went back.
+          </p>
+          <p>
+            I grew up in a small town where the most exciting thing that happened each year was the summer fair. I always had this feeling that the world was <strong>enormous and I was only seeing a very tiny corner of it</strong>. Books helped, and then travel did the rest. The first time I landed somewhere where I didn't speak the language and couldn't read the signs, I felt something click into place.
+          </p>
+          <p>
+            This blog is my attempt to <strong>write down what travelling actually feels like</strong> — not the filtered, highlight-reel version, but the real thing. The bad flights and the great ones. The meals that changed me and the ones I probably shouldn't have eaten. The places that were exactly what the photos promised, and the places that were something else entirely and better for it.
+          </p>
+          <p>
+            I travel because the world is <strong>genuinely extraordinary</strong>, and I don't think we remind ourselves of that enough. I travel because every place I go teaches me something I didn't know I needed to learn. And honestly, I travel because sitting still has never come naturally to me — and somewhere along the way, I stopped trying to fight it.
+          </p>
+        </div>
+
+        <p class="about-signature">— Suzie x</p>
+      </div>
+    </div>
+
+    <!-- DIVIDER -->
+    <div class="about-divider"></div>
+
+    <!-- RIGHT: STATS -->
+    <div class="about-right">
+      <p class="stats-eyebrow">by the numbers</p>
+      <h2 class="stats-heading">Suzie's travel stats</h2>
+      <p class="stats-sub">Four years in. Still counting.</p>
+
+      <div class="stats-grid">
+
+        <div class="stat-card">
+          <div class="stat-number" data-target="47">0</div>
+          <div class="stat-label">Countries Visited</div>
+          <div class="stat-note">and counting...</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-number" data-target="128">0</div>
+          <div class="stat-label">Flights Taken</div>
+          <div class="stat-note">window seat always</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-number" data-target="6">0</div>
+          <div class="stat-label">Continents Explored</div>
+          <div class="stat-note">Antarctica, I'm coming</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-number" data-target="89241" data-format="miles">0</div>
+          <div class="stat-label">Miles Travelled</div>
+          <div class="stat-note">roughly 3.5× the equator</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-number" data-target="4">0</div>
+          <div class="stat-label">Years on the Road</div>
+          <div class="stat-note">started on a Tuesday</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-number" data-target="312">0</div>
+          <div class="stat-label">Nights Away</div>
+          <div class="stat-note">hotels, hostels & floors</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-number" data-target="23">0</div>
+          <div class="stat-label">Bucket List Ticks</div>
+          <div class="stat-note">list keeps growing</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-number" data-target="14">0</div>
+          <div class="stat-label">Languages Attempted</div>
+          <div class="stat-note">good at 1, bad at 13</div>
+        </div>
+
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ─── QUOTE BAND ───────────────────────────────────────────── -->
+  <div class="quote-band">
+    <p class="quote-text">Travel is the only thing you buy that makes you richer.</p>
+    <p class="quote-attr">— Suzie's fridge magnet, Lisbon</p>
+  </div>
+
+  <!-- ─── FOOTER ─────────────────────────────────────────────── -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-social">
+        <a href="#" class="footer-social-link" aria-label="Instagram"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
+        <a href="#" class="footer-social-link" aria-label="YouTube"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+        <a href="#" class="footer-social-link" aria-label="Twitter / X"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+      </div>
+      <p class="footer-copy">© 2025 Wander With Suzy</p>
+      <a href="#" class="footer-top" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg> Back to top</a>
+    </div>
+  </footer>
+
+  <script>
+    // ── Nav ──────────────────────────────────────────────────
+    const navbar    = document.getElementById('navbar');
+    const hamburger = document.getElementById('navHamburger');
+    const navLinks  = document.getElementById('navLinks');
+
+    window.addEventListener('scroll', () => {
+      navbar.classList.toggle('scrolled', window.scrollY > 60);
+    });
+
+    hamburger.addEventListener('click', () => {
+      hamburger.classList.toggle('open');
+      navLinks.classList.toggle('open');
+    });
+
+    document.querySelectorAll('.nav-close-link').forEach(link => {
+      link.addEventListener('click', () => {
+        hamburger.classList.remove('open');
+        navLinks.classList.remove('open');
+      });
+    });
+
+    // ── Count-up animation ───────────────────────────────────
+    function formatNum(n, format) {
+      if (format === 'miles') {
+        return n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k' : n;
+      }
+      return n.toString();
+    }
+
+    function countUp(el) {
+      const target  = parseInt(el.dataset.target, 10);
+      const format  = el.dataset.format || '';
+      const duration = 1800;
+      const steps   = 60;
+      const inc     = target / steps;
+      let current   = 0;
+      let step      = 0;
+
+      const timer = setInterval(() => {
+        step++;
+        current = Math.min(Math.round(inc * step), target);
+        el.textContent = formatNum(current, format);
+        if (current >= target) clearInterval(timer);
+      }, duration / steps);
+    }
+
+    // Trigger when stats scroll into view
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          countUp(entry.target);
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.3 });
+
+    document.querySelectorAll('.stat-number[data-target]').forEach(el => {
+      observer.observe(el);
+    });
+
+    // ── Scroll reveal ─────────────────────────────────────────
+    document.querySelectorAll(
+      '.page-header-eyebrow, .page-header-title, .page-header-sub, ' +
+      '.about-photo-wrap, .stat-card, .quote-text, .quote-attr'
+    ).forEach(el => el.classList.add('reveal'));
+
+    document.querySelectorAll('.about-story p').forEach(el => el.classList.add('reveal'));
+
+    const revealObs = new IntersectionObserver((entries) => {
+      let delay = 0;
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const d = delay;
+          setTimeout(() => entry.target.classList.add('visible'), d);
+          delay += 80;
+          revealObs.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+  </script>
+</body>
+</html>

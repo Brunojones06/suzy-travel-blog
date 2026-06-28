@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Journal — Exploring with Suzie</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Lato:ital,wght@0,300;0,400;0,700;1,300;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal: #8fc1c1;
+      --sage: #cddfcd;
+      --red: #ef4c4c;
+      --white: #ffffff;
+      --text: #2d2d2d;
+      --muted: #999;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Lato', sans-serif;
+      background: var(--white);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    /* ─── NAV ──────────────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.1rem 3.5rem;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(143,193,193,0.12);
+      transition: padding 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    nav.scrolled {
+      padding: 0.7rem 3.5rem;
+      box-shadow: 0 2px 30px rgba(0,0,0,0.06);
+    }
+
+    .nav-logo {
+      font-family: 'Pacifico', cursive;
+      font-size: 1.5rem;
+      color: var(--teal);
+      text-decoration: none;
+      letter-spacing: 0.02em;
+      transition: color 0.2s;
+    }
+    .nav-logo:hover { color: #6fa8a8; }
+
+    .nav-links {
+      display: flex;
+      gap: 2.5rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: #666;
+      font-size: 0.82rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 400;
+      position: relative;
+      transition: color 0.2s;
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -3px; left: 0;
+      width: 0; height: 1.5px;
+      background: var(--teal);
+      transition: width 0.3s ease;
+    }
+
+    .nav-links a:hover { color: var(--teal); }
+    .nav-links a:hover::after { width: 100%; }
+    .nav-links a.active { color: var(--teal); }
+    .nav-links a.active::after { width: 100%; }
+
+    .nav-hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      z-index: 2100;
+    }
+
+    .nav-hamburger span {
+      display: block;
+      width: 22px;
+      height: 1.5px;
+      background: var(--text);
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      transform-origin: center;
+    }
+
+    .nav-hamburger.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+    .nav-hamburger.open span:nth-child(2) { opacity: 0; }
+    .nav-hamburger.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+    /* ─── PAGE HEADER ───────────────────────────────────────── */
+    .page-header {
+      padding: 10rem 2rem 5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .page-header-orb-1 {
+      position: absolute;
+      width: 500px; height: 500px;
+      top: -100px; right: -80px;
+      background: radial-gradient(circle, rgba(205,223,205,0.22) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .page-header-orb-2 {
+      position: absolute;
+      width: 400px; height: 400px;
+      bottom: -60px; left: -60px;
+      background: radial-gradient(circle, rgba(143,193,193,0.16) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .page-header-eyebrow {
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 0.5rem;
+    }
+
+    .page-header-title {
+      font-family: 'Pacifico', cursive;
+      font-size: 2rem;
+      line-height: 1.2;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+    }
+
+    .page-header-sub {
+      font-size: 0.88rem;
+      color: var(--muted);
+      font-weight: 300;
+    }
+
+    /* ─── GRID ──────────────────────────────────────────────── */
+    .posts-section {
+      padding: 2rem 4rem 8rem;
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+
+    .posts-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 3rem 2.5rem;
+    }
+
+    /* ─── CARD ──────────────────────────────────────────────── */
+    .post-card {
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .post-card:hover {
+      transform: scale(1.02);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+    }
+
+    .post-card-img-wrap {
+      position: relative;
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 1.2rem;
+    }
+
+    .post-card-img {
+      width: 100%;
+      height: 240px;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.5s ease;
+    }
+
+    .post-card:hover .post-card-img { transform: scale(1.05); }
+
+    .post-card-tag {
+      position: absolute;
+      top: 14px; left: 14px;
+      font-size: 0.65rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      background: white;
+      color: var(--teal);
+      padding: 0.25rem 0.8rem;
+      border-radius: 100px;
+      font-weight: 700;
+    }
+
+    .post-card-body {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .post-card-date {
+      font-size: 0.72rem;
+      color: #c8c8c8;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.5rem;
+    }
+
+    .post-card-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.45;
+      margin-bottom: 0.7rem;
+    }
+
+    .post-card-excerpt {
+      font-size: 0.83rem;
+      color: var(--muted);
+      line-height: 1.75;
+      font-weight: 300;
+      flex: 1;
+      margin-bottom: 1.2rem;
+    }
+
+    .post-card-footer {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .post-card-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 1.2rem;
+      background: var(--teal);
+      color: white;
+      font-family: 'Lato', sans-serif;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    .post-card-btn:hover {
+      background: #6fa8a8;
+      transform: translateY(-1px);
+    }
+
+    .post-card-btn svg {
+      transition: transform 0.2s;
+    }
+
+    .post-card-btn:hover svg { transform: translateX(3px); }
+
+    /* ─── COMING SOON POPUP ──────────────────────────────────── */
+    .popup-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.25);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 9000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .popup-backdrop.visible {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .popup-box {
+      background: white;
+      border-radius: 20px;
+      padding: 2.8rem 3rem;
+      max-width: 380px;
+      width: calc(100% - 3rem);
+      text-align: center;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.14);
+      transform: translateY(16px) scale(0.97);
+      transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    }
+
+    .popup-backdrop.visible .popup-box {
+      transform: translateY(0) scale(1);
+    }
+
+    .popup-emoji {
+      font-size: 2.4rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    .popup-heading {
+      font-family: 'Pacifico', cursive;
+      font-size: 1.5rem;
+      color: var(--text);
+      margin-bottom: 0.6rem;
+    }
+
+    .popup-message {
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.7;
+      font-weight: 300;
+      margin-bottom: 1.8rem;
+    }
+
+    .popup-close {
+      padding: 0.6rem 2rem;
+      background: var(--teal);
+      color: white;
+      font-family: 'Lato', sans-serif;
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    .popup-close:hover { background: #6fa8a8; transform: translateY(-1px); }
+
+    /* ─── SCROLL REVEAL ─────────────────────────────────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ─── FOOTER ─────────────────────────────────────────────── */
+    .site-footer {
+      background: var(--white);
+      border-top: 3px solid var(--teal);
+      padding: 2.8rem 2rem;
+    }
+    .footer-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .footer-social { display: flex; gap: 1.3rem; align-items: center; }
+    .footer-social-link {
+      color: var(--red);
+      display: flex;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+    .footer-social-link:hover { transform: translateY(-3px); opacity: 0.7; }
+    .footer-copy { font-size: 0.75rem; color: #aaa; letter-spacing: 0.06em; }
+    .footer-top {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      text-decoration: none;
+      color: var(--teal);
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 700;
+      transition: transform 0.2s ease;
+    }
+    .footer-top:hover { transform: translateY(-3px); }
+
+    /* ─── MOBILE ─────────────────────────────────────────────── */
+    @media (max-width: 1024px) {
+      .posts-grid { grid-template-columns: repeat(2, 1fr); }
+      .posts-section { padding: 2rem 2.5rem 6rem; }
+    }
+
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.5rem; }
+      .nav-hamburger { display: flex; }
+
+      .nav-links {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        height: 100vh;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2.5rem;
+        background: rgba(255,255,255,0.97);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        transform: translateX(100%);
+        transition: transform 0.35s ease;
+        z-index: 2000;
+      }
+
+      .nav-links.open { transform: translateX(0); }
+      .nav-links a { font-size: 1.1rem; letter-spacing: 0.18em; }
+
+      .posts-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+      .posts-section { padding: 2rem 1.5rem 5rem; }
+      .page-header { padding: 8rem 1.5rem 3rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── NAV ───────────────────────────────────────────────── -->
+  <nav id="navbar">
+    <a href="index.html" class="nav-logo">suzie</a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html#map-section" class="nav-close-link">Places</a></li>
+      <li><a href="blog.html" class="nav-close-link active">Journal</a></li>
+      <li><a href="about.html" class="nav-close-link">About</a></li>
+      <li><a href="contact.html" class="nav-close-link">Contact</a></li>
+    </ul>
+    <button class="nav-hamburger" id="navHamburger" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- ─── PAGE HEADER ─────────────────────────────────────────── -->
+  <header class="page-header">
+    <div class="page-header-orb-1"></div>
+    <div class="page-header-orb-2"></div>
+    <p class="page-header-eyebrow">stories from the road</p>
+    <h1 class="page-header-title">The Journal</h1>
+    <p class="page-header-sub">Honest accounts of the places that moved me, fed me, or got me completely lost.</p>
+  </header>
+
+  <!-- ─── POSTS GRID ──────────────────────────────────────────── -->
+  <main class="posts-section">
+    <div class="posts-grid">
+
+      <!-- 1 -->
+      <article class="post-card">
+        <div class="post-card-img-wrap">
+          <img class="post-card-img"
+            src="https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=720&auto=format&fit=crop&q=80"
+            alt="Bali Rice Terraces" />
+          <span class="post-card-tag">Adventure</span>
+        </div>
+        <div class="post-card-body">
+          <p class="post-card-date">June 15, 2024</p>
+          <h2 class="post-card-title">Rice Terraces at Dawn: A Morning in Bali I'll Never Forget</h2>
+          <p class="post-card-excerpt">I set my alarm for 4:30am — something I rarely do voluntarily. But Tegalalang doesn't wait for lazy travelers, and the light that spills across those sculpted green steps at sunrise is unlike anything I've witnessed anywhere on earth.</p>
+          <div class="post-card-footer">
+            <a href="#" class="post-card-btn">
+              Read more
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- 2 -->
+      <article class="post-card">
+        <div class="post-card-img-wrap">
+          <img class="post-card-img"
+            src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=720&auto=format&fit=crop&q=80"
+            alt="Tokyo Cherry Blossoms" />
+          <span class="post-card-tag">Culture</span>
+        </div>
+        <div class="post-card-body">
+          <p class="post-card-date">March 28, 2024</p>
+          <h2 class="post-card-title">Tokyo in Bloom: Two Weeks Under the Cherry Blossoms</h2>
+          <p class="post-card-excerpt">Every year, Japan holds its breath. Meteorologists track cold fronts, park benches fill up with reservation stakes, and the entire country quietly rearranges its schedule around the life of a flower. I gave two weeks entirely to sakura season.</p>
+          <div class="post-card-footer">
+            <a href="#" class="post-card-btn">
+              Read more
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- 3 -->
+      <article class="post-card">
+        <div class="post-card-img-wrap">
+          <img class="post-card-img"
+            src="https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=720&auto=format&fit=crop&q=80"
+            alt="Hanoi Old Quarter" />
+          <span class="post-card-tag">Food</span>
+        </div>
+        <div class="post-card-body">
+          <p class="post-card-date">October 22, 2023</p>
+          <h2 class="post-card-title">Hanoi at Dawn: The Old Quarter Before the City Wakes</h2>
+          <p class="post-card-excerpt">Hanoi is best experienced at first light, when the city belongs to the elderly doing tai chi by the lake and the phở vendors stirring broth that's been simmering since the night before. At 6am, it belongs entirely to you.</p>
+          <div class="post-card-footer">
+            <a href="#" class="post-card-btn">
+              Read more
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- 4 -->
+      <article class="post-card">
+        <div class="post-card-img-wrap">
+          <img class="post-card-img"
+            src="https://images.unsplash.com/photo-1539020140153-e479b8c22e70?w=720&auto=format&fit=crop&q=80"
+            alt="Marrakech Medina" />
+          <span class="post-card-tag">Adventure</span>
+        </div>
+        <div class="post-card-body">
+          <p class="post-card-date">January 10, 2024</p>
+          <h2 class="post-card-title">Lost in the Medina: 48 Hours in Marrakech</h2>
+          <p class="post-card-excerpt">I got lost seventeen times in the medina and have zero regrets about any of them. Each wrong turn led somewhere more beautiful than the last — a carved cedar doorway, a courtyard full of orange trees, a man brewing mint tea over a single quiet flame.</p>
+          <div class="post-card-footer">
+            <a href="#" class="post-card-btn">
+              Read more
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- 5 -->
+      <article class="post-card">
+        <div class="post-card-img-wrap">
+          <img class="post-card-img"
+            src="https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=720&auto=format&fit=crop&q=80"
+            alt="Santorini Blue Domes" />
+          <span class="post-card-tag">Culture</span>
+        </div>
+        <div class="post-card-body">
+          <p class="post-card-date">June 3, 2024</p>
+          <h2 class="post-card-title">Santorini Without the Crowds: A September Guide</h2>
+          <p class="post-card-excerpt">I told myself I'd resist the clichés. I did not resist the clichés. The blue domes, the white walls, the horizon turning pink over the caldera — some things are famous because they genuinely deserve to be. I'm not even a little sorry.</p>
+          <div class="post-card-footer">
+            <a href="#" class="post-card-btn">
+              Read more
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- 6 -->
+      <article class="post-card">
+        <div class="post-card-img-wrap">
+          <img class="post-card-img"
+            src="https://images.unsplash.com/photo-1512003867696-6d5ce6835040?w=720&auto=format&fit=crop&q=80"
+            alt="Bangkok Street Food" />
+          <span class="post-card-tag">Food</span>
+        </div>
+        <div class="post-card-body">
+          <p class="post-card-date">November 18, 2023</p>
+          <h2 class="post-card-title">The $3 Meal That Changed How I Think About Food</h2>
+          <p class="post-card-excerpt">It was 7am on a Tuesday in Bangkok's Chinatown. I was running on four hours of sleep and the kind of hunger that bypasses reason entirely. A woman with a cart and thirty years of practice handed me a bowl of pad see ew I am still thinking about.</p>
+          <div class="post-card-footer">
+            <a href="#" class="post-card-btn">
+              Read more
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- 7 -->
+      <article class="post-card">
+        <div class="post-card-img-wrap">
+          <img class="post-card-img"
+            src="https://images.unsplash.com/photo-1534445867742-43195f401b6c?w=720&auto=format&fit=crop&q=80"
+            alt="Amalfi Coast" />
+          <span class="post-card-tag">Culture</span>
+        </div>
+        <div class="post-card-body">
+          <p class="post-card-date">August 7, 2023</p>
+          <h2 class="post-card-title">Driving the Amalfi Coast: Everything Nobody Tells You</h2>
+          <p class="post-card-excerpt">The coast curves like a promise you're not sure you should believe. Lemon groves cascade down to turquoise water, the cliffside roads are genuinely terrifying, and somewhere above you an Italian grandmother is making something magnificent with those lemons.</p>
+          <div class="post-card-footer">
+            <a href="#" class="post-card-btn">
+              Read more
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- 8 -->
+      <article class="post-card">
+        <div class="post-card-img-wrap">
+          <img class="post-card-img"
+            src="https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=720&auto=format&fit=crop&q=80"
+            alt="Lisbon" />
+          <span class="post-card-tag">Home Base</span>
+        </div>
+        <div class="post-card-body">
+          <p class="post-card-date">February 14, 2024</p>
+          <h2 class="post-card-title">Lisbon in Love: Why I Keep Coming Back</h2>
+          <p class="post-card-excerpt">There's a word in Portuguese — saudade — that Lisbon teaches you to feel. This city held me like an old friend: salt air, fado through open windows, the warm weight of azulejo tiles beneath my feet. It is the place I return to in my chest when the world gets too loud.</p>
+          <div class="post-card-footer">
+            <a href="#" class="post-card-btn">
+              Read more
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </main>
+
+  <!-- ─── COMING SOON POPUP ──────────────────────────────────── -->
+  <div class="popup-backdrop" id="comingSoonBackdrop">
+    <div class="popup-box">
+      <span class="popup-emoji">✈️</span>
+      <h2 class="popup-heading">Full posts coming soon</h2>
+      <p class="popup-message">Suzie is still writing up this one — check back soon for the full story.</p>
+      <button class="popup-close" id="popupClose">Got it</button>
+    </div>
+  </div>
+
+  <!-- ─── FOOTER ─────────────────────────────────────────────── -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-social">
+        <a href="#" class="footer-social-link" aria-label="Instagram"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
+        <a href="#" class="footer-social-link" aria-label="YouTube"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+        <a href="#" class="footer-social-link" aria-label="Twitter / X"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+      </div>
+      <p class="footer-copy">© 2025 Wander With Suzy</p>
+      <a href="#" class="footer-top" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg> Back to top</a>
+    </div>
+  </footer>
+
+  <script>
+    const navbar   = document.getElementById('navbar');
+    const hamburger = document.getElementById('navHamburger');
+    const navLinks  = document.getElementById('navLinks');
+
+    window.addEventListener('scroll', () => {
+      navbar.classList.toggle('scrolled', window.scrollY > 60);
+    });
+
+    hamburger.addEventListener('click', () => {
+      hamburger.classList.toggle('open');
+      navLinks.classList.toggle('open');
+    });
+
+    document.querySelectorAll('.nav-close-link').forEach(link => {
+      link.addEventListener('click', () => {
+        hamburger.classList.remove('open');
+        navLinks.classList.remove('open');
+      });
+    });
+
+    // ── Coming soon popup ────────────────────────────────────
+    const backdrop   = document.getElementById('comingSoonBackdrop');
+    const popupClose = document.getElementById('popupClose');
+
+    function showPopup(e) {
+      e.preventDefault();
+      backdrop.classList.add('visible');
+    }
+
+    function hidePopup() {
+      backdrop.classList.remove('visible');
+    }
+
+    document.querySelectorAll('.post-card-btn').forEach(btn => {
+      btn.addEventListener('click', showPopup);
+    });
+
+    popupClose.addEventListener('click', hidePopup);
+    backdrop.addEventListener('click', e => {
+      if (e.target === backdrop) hidePopup();
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') hidePopup();
+    });
+
+    // ── Scroll reveal ─────────────────────────────────────────
+    document.querySelectorAll(
+      '.page-header-eyebrow, .page-header-title, .page-header-sub, .post-card'
+    ).forEach(el => el.classList.add('reveal'));
+
+    const revealObs = new IntersectionObserver((entries) => {
+      let delay = 0;
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const d = delay;
+          setTimeout(() => entry.target.classList.add('visible'), d);
+          delay += 80;
+          revealObs.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+  </script>
+</body>
+</html>

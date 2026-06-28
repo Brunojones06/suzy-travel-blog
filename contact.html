@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact — Exploring with Suzie</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Lato:ital,wght@0,300;0,400;0,700;1,300;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal: #8fc1c1;
+      --sage: #cddfcd;
+      --red: #ef4c4c;
+      --white: #ffffff;
+      --text: #2d2d2d;
+      --muted: #999;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Lato', sans-serif;
+      background: var(--white);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    /* ─── NAV ──────────────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.1rem 3.5rem;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(143,193,193,0.12);
+      transition: padding 0.3s ease, box-shadow 0.3s ease;
+    }
+    nav.scrolled { padding: 0.7rem 3.5rem; box-shadow: 0 2px 30px rgba(0,0,0,0.06); }
+
+    .nav-logo {
+      font-family: 'Pacifico', cursive;
+      font-size: 1.5rem;
+      color: var(--teal);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-logo:hover { color: #6fa8a8; }
+
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+
+    .nav-links a {
+      text-decoration: none;
+      color: #666;
+      font-size: 0.82rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 400;
+      position: relative;
+      transition: color 0.2s;
+    }
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -3px; left: 0;
+      width: 0; height: 1.5px;
+      background: var(--teal);
+      transition: width 0.3s ease;
+    }
+    .nav-links a:hover, .nav-links a.active { color: var(--teal); }
+    .nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+
+    .nav-hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      z-index: 2100;
+    }
+    .nav-hamburger span {
+      display: block;
+      width: 22px; height: 1.5px;
+      background: var(--text);
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      transform-origin: center;
+    }
+    .nav-hamburger.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+    .nav-hamburger.open span:nth-child(2) { opacity: 0; }
+    .nav-hamburger.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+    /* ─── PAGE HEADER ───────────────────────────────────────── */
+    .page-header {
+      padding: 9rem 2rem 5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .page-header::before {
+      content: '';
+      position: absolute;
+      width: 550px; height: 550px;
+      top: -120px; right: -80px;
+      background: radial-gradient(circle, rgba(205,223,205,0.2) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .page-header::after {
+      content: '';
+      position: absolute;
+      width: 400px; height: 400px;
+      bottom: -40px; left: -60px;
+      background: radial-gradient(circle, rgba(143,193,193,0.15) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .page-header-eyebrow {
+      font-size: 0.72rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 0.8rem;
+    }
+    .page-header-title {
+      font-family: 'Pacifico', cursive;
+      font-size: clamp(2.4rem, 5vw, 4rem);
+      color: var(--text);
+      margin-bottom: 1rem;
+    }
+    .page-header-sub {
+      font-size: 0.95rem;
+      color: var(--muted);
+      font-weight: 300;
+      font-style: italic;
+    }
+
+    /* ─── NEWSLETTER ────────────────────────────────────────── */
+    .newsletter-section {
+      padding: 2rem 2rem 5rem;
+      display: flex;
+      justify-content: center;
+    }
+
+    .newsletter-card {
+      background: linear-gradient(135deg, rgba(143,193,193,0.07) 0%, rgba(205,223,205,0.1) 100%);
+      border: 1px solid rgba(143,193,193,0.2);
+      border-radius: 24px;
+      padding: 4rem 4.5rem;
+      max-width: 620px;
+      width: 100%;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .newsletter-card::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(143,193,193,0.15) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+
+    .newsletter-icon {
+      width: 52px; height: 52px;
+      background: linear-gradient(135deg, var(--teal), #6aabab);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.5rem;
+    }
+
+    .newsletter-icon svg { color: white; }
+
+    .newsletter-eyebrow {
+      font-size: 0.7rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 0.6rem;
+    }
+
+    .newsletter-title {
+      font-family: 'Pacifico', cursive;
+      font-size: 1.9rem;
+      color: var(--text);
+      margin-bottom: 0.8rem;
+      line-height: 1.2;
+    }
+
+    .newsletter-desc {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.75;
+      font-weight: 300;
+      margin-bottom: 2.2rem;
+    }
+
+    .newsletter-form {
+      display: flex;
+      gap: 0.75rem;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    .newsletter-form.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-10px);
+      position: absolute;
+    }
+
+    .newsletter-input {
+      flex: 1;
+      padding: 0.85rem 1.2rem;
+      border: 1.5px solid rgba(143,193,193,0.35);
+      border-radius: 8px;
+      font-family: 'Lato', sans-serif;
+      font-size: 0.88rem;
+      color: var(--text);
+      background: white;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .newsletter-input::placeholder { color: #ccc; }
+
+    .newsletter-input:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px rgba(143,193,193,0.15);
+    }
+
+    .newsletter-btn {
+      padding: 0.85rem 1.8rem;
+      background: var(--teal);
+      color: white;
+      font-family: 'Lato', sans-serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      white-space: nowrap;
+    }
+
+    .newsletter-btn:hover { background: #6fa8a8; transform: translateY(-1px); }
+    .newsletter-btn:active { transform: translateY(0); }
+
+    .newsletter-note {
+      font-size: 0.7rem;
+      color: #ccc;
+      margin-top: 1rem;
+      letter-spacing: 0.04em;
+    }
+
+    /* ─── SUCCESS STATE ─────────────────────────────────────── */
+    @keyframes successBounce {
+      0%   { opacity: 0; transform: translateY(24px) scale(0.92); }
+      55%  { transform: translateY(-8px) scale(1.03); }
+      75%  { transform: translateY(4px) scale(0.98); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .newsletter-success {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.8rem;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .newsletter-success.show {
+      animation: successBounce 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
+      pointer-events: auto;
+    }
+
+    /* SVG checkmark */
+    .checkmark-wrap {
+      width: 80px; height: 80px;
+    }
+
+    .checkmark-circle {
+      stroke-dasharray: 226;
+      stroke-dashoffset: 226;
+      stroke: var(--teal);
+      stroke-width: 3;
+      fill: none;
+      animation: none;
+    }
+
+    .checkmark-tick {
+      stroke-dasharray: 55;
+      stroke-dashoffset: 55;
+      stroke: var(--teal);
+      stroke-width: 3.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      animation: none;
+    }
+
+    .checkmark-circle.animate {
+      animation: drawCircle 0.6s cubic-bezier(0.65, 0, 0.45, 1) 0.1s forwards;
+    }
+
+    .checkmark-tick.animate {
+      animation: drawTick 0.35s cubic-bezier(0.65, 0, 0.45, 1) 0.75s forwards;
+    }
+
+    @keyframes drawCircle {
+      to { stroke-dashoffset: 0; }
+    }
+    @keyframes drawTick {
+      to { stroke-dashoffset: 0; }
+    }
+
+    .success-title {
+      font-family: 'Pacifico', cursive;
+      font-size: 1.5rem;
+      color: var(--text);
+    }
+
+    .success-sub {
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-weight: 300;
+      line-height: 1.6;
+    }
+
+    /* floating dots animation on success */
+    .success-dots {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      border-radius: 24px;
+    }
+
+    .dot-pop {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0;
+    }
+
+    .dot-pop.animate { animation: var(--anim, burst1) 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94) var(--delay, 0s) forwards; }
+
+    @keyframes burst1 { 0% { transform: translate(0,0) scale(0); opacity:1; } 100% { transform: translate(-55px,-85px) scale(1); opacity:0; } }
+    @keyframes burst2 { 0% { transform: translate(0,0) scale(0); opacity:1; } 100% { transform: translate(55px,-85px) scale(1); opacity:0; } }
+    @keyframes burst3 { 0% { transform: translate(0,0) scale(0); opacity:1; } 100% { transform: translate(-90px,-30px) scale(1); opacity:0; } }
+    @keyframes burst4 { 0% { transform: translate(0,0) scale(0); opacity:1; } 100% { transform: translate(90px,-30px) scale(1); opacity:0; } }
+    @keyframes burst5 { 0% { transform: translate(0,0) scale(0); opacity:1; } 100% { transform: translate(-35px,-105px) scale(1); opacity:0; } }
+    @keyframes burst6 { 0% { transform: translate(0,0) scale(0); opacity:1; } 100% { transform: translate(35px,-105px) scale(1); opacity:0; } }
+
+    /* ─── SECTION DIVIDER ───────────────────────────────────── */
+    .section-divider {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 0 2rem 4rem;
+    }
+
+    .section-divider-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(143,193,193,0.4), transparent);
+    }
+
+    .section-divider-icon {
+      color: var(--teal);
+      opacity: 0.5;
+    }
+
+    /* ─── SOCIAL SECTION ────────────────────────────────────── */
+    .social-section {
+      padding: 0 2rem 8rem;
+      text-align: center;
+    }
+
+    .social-eyebrow {
+      font-size: 0.7rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 0.6rem;
+    }
+
+    .social-title {
+      font-family: 'Pacifico', cursive;
+      font-size: 2rem;
+      color: var(--text);
+      margin-bottom: 0.6rem;
+    }
+
+    .social-sub {
+      font-size: 0.88rem;
+      color: var(--muted);
+      font-weight: 300;
+      font-style: italic;
+      margin-bottom: 3rem;
+    }
+
+    .social-grid {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .social-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      padding: 2.2rem 2rem;
+      border-radius: 20px;
+      border: 1.5px solid #eee;
+      background: white;
+      text-decoration: none;
+      width: 190px;
+      transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .social-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      border-radius: 19px;
+    }
+
+    .social-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.08);
+    }
+
+    /* per-platform hover colours */
+    .social-card.instagram:hover { border-color: #e1306c; box-shadow: 0 16px 40px rgba(225,48,108,0.12); }
+    .social-card.twitter:hover   { border-color: #000;    box-shadow: 0 16px 40px rgba(0,0,0,0.1); }
+    .social-card.tiktok:hover    { border-color: #010101; box-shadow: 0 16px 40px rgba(0,0,0,0.12); }
+    .social-card.snapchat:hover  { border-color: #FFFC00; box-shadow: 0 16px 40px rgba(255,252,0,0.2); }
+
+    .social-card-icon {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.25s ease;
+    }
+
+    .social-card:hover .social-card-icon { transform: scale(1.1); }
+
+    .instagram .social-card-icon { background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
+    .twitter   .social-card-icon { background: #000; }
+    .tiktok    .social-card-icon { background: #010101; }
+    .snapchat  .social-card-icon { background: #FFFC00; }
+
+    .social-card-name {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.02em;
+    }
+
+    .social-card-handle {
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-weight: 300;
+    }
+
+    /* ─── SCROLL REVEAL ─────────────────────────────────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ─── FOOTER ─────────────────────────────────────────────── */
+    .site-footer {
+      background: var(--white);
+      border-top: 3px solid var(--teal);
+      padding: 2.8rem 2rem;
+    }
+    .footer-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .footer-social { display: flex; gap: 1.3rem; align-items: center; }
+    .footer-social-link {
+      color: var(--red);
+      display: flex;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+    .footer-social-link:hover { transform: translateY(-3px); opacity: 0.7; }
+    .footer-copy { font-size: 0.75rem; color: #aaa; letter-spacing: 0.06em; }
+    .footer-top {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      text-decoration: none;
+      color: var(--teal);
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 700;
+      transition: transform 0.2s ease;
+    }
+    .footer-top:hover { transform: translateY(-3px); }
+
+    /* ─── MOBILE ─────────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.5rem; }
+      .nav-hamburger { display: flex; }
+
+      .nav-links {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        height: 100vh;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2.5rem;
+        background: rgba(255,255,255,0.97);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        transform: translateX(100%);
+        transition: transform 0.35s ease;
+        z-index: 2000;
+      }
+      .nav-links.open { transform: translateX(0); }
+      .nav-links a { font-size: 1.1rem; letter-spacing: 0.18em; }
+
+      .newsletter-card { padding: 2.5rem 1.8rem; }
+      .newsletter-form { flex-direction: column; }
+      .newsletter-btn { width: 100%; }
+
+      .social-grid { gap: 1rem; }
+      .social-card { width: calc(50% - 0.5rem); padding: 1.8rem 1rem; }
+      .page-header { padding: 8rem 1.5rem 3rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── NAV ───────────────────────────────────────────────── -->
+  <nav id="navbar">
+    <a href="index.html" class="nav-logo">suzie</a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html#map-section" class="nav-close-link">Places</a></li>
+      <li><a href="blog.html" class="nav-close-link">Journal</a></li>
+      <li><a href="about.html" class="nav-close-link">About</a></li>
+      <li><a href="contact.html" class="nav-close-link active">Contact</a></li>
+    </ul>
+    <button class="nav-hamburger" id="navHamburger" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- ─── PAGE HEADER ─────────────────────────────────────────── -->
+  <header class="page-header">
+    <p class="page-header-eyebrow">let's stay in touch</p>
+    <h1 class="page-header-title">Say Hello</h1>
+    <p class="page-header-sub">Subscribe for new stories, or find Suzie wherever she's posting from.</p>
+  </header>
+
+  <!-- ─── NEWSLETTER ──────────────────────────────────────────── -->
+  <section class="newsletter-section">
+    <div class="newsletter-card">
+
+      <!-- floating dot confetti (hidden until success) -->
+      <div class="success-dots" id="successDots">
+        <div class="dot-pop" style="width:11px;height:11px;background:#ef4c4c;left:50%;top:72%;--anim:burst1;--delay:0.05s"></div>
+        <div class="dot-pop" style="width:9px;height:9px;background:var(--sage);left:50%;top:72%;--anim:burst2;--delay:0.08s"></div>
+        <div class="dot-pop" style="width:8px;height:8px;background:#ef4c4c;left:50%;top:72%;--anim:burst3;--delay:0.12s"></div>
+        <div class="dot-pop" style="width:7px;height:7px;background:var(--sage);left:50%;top:72%;--anim:burst4;--delay:0.06s"></div>
+        <div class="dot-pop" style="width:10px;height:10px;background:#ef4c4c;left:50%;top:72%;--anim:burst5;--delay:0.1s"></div>
+        <div class="dot-pop" style="width:6px;height:6px;background:var(--sage);left:50%;top:72%;--anim:burst6;--delay:0.04s"></div>
+      </div>
+
+      <!-- default state -->
+      <div id="newsletterDefault">
+        <div class="newsletter-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+        </div>
+
+        <p class="newsletter-eyebrow">the wanderer's dispatch</p>
+        <h2 class="newsletter-title">Join the Journey</h2>
+        <p class="newsletter-desc">New destinations, honest travel notes, and the occasional photo that didn't make Instagram — straight to your inbox. No spam. Just stories.</p>
+
+        <form class="newsletter-form" id="newsletterForm">
+          <input
+            class="newsletter-input"
+            type="email"
+            id="emailInput"
+            placeholder="your@email.com"
+            required
+          />
+          <button class="newsletter-btn" type="submit">Subscribe</button>
+        </form>
+        <p class="newsletter-note" id="inputError" style="color:#ef8c8c;display:none;">Please enter a valid email address.</p>
+        <p class="newsletter-note" style="margin-top:0.8rem">No spam, ever. Unsubscribe any time.</p>
+      </div>
+
+      <!-- success state -->
+      <div class="newsletter-success" id="newsletterSuccess">
+        <div class="checkmark-wrap">
+          <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+            <circle class="checkmark-circle" id="checkCircle" cx="40" cy="40" r="36" transform="rotate(-90 40 40)"/>
+            <polyline class="checkmark-tick" id="checkTick" points="24,42 35,53 56,30"/>
+          </svg>
+        </div>
+        <h3 class="success-title">You're on the list!</h3>
+        <p class="success-sub">Welcome aboard. Watch your inbox for Suzie's latest adventures, honest reviews, and stories from the road.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ─── DIVIDER ──────────────────────────────────────────────── -->
+  <div class="section-divider">
+    <div class="section-divider-line"></div>
+    <svg class="section-divider-icon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+    </svg>
+    <div class="section-divider-line"></div>
+  </div>
+
+  <!-- ─── SOCIAL ───────────────────────────────────────────────── -->
+  <section class="social-section">
+    <p class="social-eyebrow">find suzie</p>
+    <h2 class="social-title">Everywhere I post</h2>
+    <p class="social-sub">Behind-the-scenes, reels, quick takes, and all the things that don't make it into the blog.</p>
+
+    <div class="social-grid">
+
+      <!-- Instagram -->
+      <a href="#" class="social-card instagram">
+        <div class="social-card-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="white">
+            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="social-card-name">Instagram</div>
+          <div class="social-card-handle">@exploringwithsuzie</div>
+        </div>
+      </a>
+
+      <!-- Twitter / X -->
+      <a href="#" class="social-card twitter">
+        <div class="social-card-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="social-card-name">Twitter / X</div>
+          <div class="social-card-handle">@suzie_explores</div>
+        </div>
+      </a>
+
+      <!-- TikTok -->
+      <a href="#" class="social-card tiktok">
+        <div class="social-card-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+            <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.75a8.16 8.16 0 0 0 4.77 1.52V6.82a4.85 4.85 0 0 1-1-.13z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="social-card-name">TikTok</div>
+          <div class="social-card-handle">@exploringwithsuzie</div>
+        </div>
+      </a>
+
+      <!-- Snapchat -->
+      <a href="#" class="social-card snapchat">
+        <div class="social-card-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="#1a1a1a">
+            <path d="M12.017 0C8.396 0 7.358.01 6.234.07 5.11.128 4.358.292 3.697.552a5.899 5.899 0 0 0-2.14 1.394A5.905 5.905 0 0 0 .163 4.086C-.097 4.747-.261 5.5-.32 6.624-.379 7.748-.389 8.787-.389 12.408s.01 4.66.07 5.784c.059 1.124.223 1.877.483 2.538a5.9 5.9 0 0 0 1.394 2.14 5.9 5.9 0 0 0 2.14 1.394c.661.26 1.414.424 2.538.483 1.124.059 2.163.069 5.784.069s4.66-.01 5.784-.07c1.124-.059 1.877-.223 2.538-.483a5.9 5.9 0 0 0 2.14-1.394 5.9 5.9 0 0 0 1.394-2.14c.26-.661.424-1.414.483-2.538.059-1.124.069-2.163.069-5.784s-.01-4.66-.07-5.784c-.059-1.124-.223-1.877-.483-2.538A5.905 5.905 0 0 0 20.41 1.57 5.899 5.899 0 0 0 18.27.176C17.609-.084 16.856-.248 15.732-.307 14.608-.366 13.57-.376 12.017 0zm0 1.802c3.587 0 4.012.014 5.428.078 1.309.06 2.02.279 2.492.462.626.243 1.073.534 1.543 1.004.47.47.761.917 1.004 1.543.183.472.402 1.183.462 2.492.064 1.416.078 1.841.078 5.428s-.014 4.012-.078 5.428c-.06 1.309-.279 2.02-.462 2.492-.243.626-.534 1.073-1.004 1.543-.47.47-.917.761-1.543 1.004-.472.183-1.183.402-2.492.462-1.416.064-1.841.078-5.428.078s-4.012-.014-5.428-.078c-1.309-.06-2.02-.279-2.492-.462a4.156 4.156 0 0 1-1.543-1.004 4.156 4.156 0 0 1-1.004-1.543c-.183-.472-.402-1.183-.462-2.492C2.016 16.42 2 15.995 2 12.408s.014-4.012.078-5.428c.06-1.309.279-2.02.462-2.492a4.156 4.156 0 0 1 1.004-1.543 4.156 4.156 0 0 1 1.543-1.004c.472-.183 1.183-.402 2.492-.462C8.005 1.816 8.43 1.802 12.017 1.802z"/>
+            <path d="M12 5.838a6.162 6.162 0 1 0 0 12.324A6.162 6.162 0 0 0 12 5.838zm0 10.162a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm7.846-10.405a1.44 1.44 0 1 1-2.88 0 1.44 1.44 0 0 1 2.88 0z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="social-card-name">Snapchat</div>
+          <div class="social-card-handle">@suzieexplores</div>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ─── FOOTER ─────────────────────────────────────────────── -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-social">
+        <a href="#" class="footer-social-link" aria-label="Instagram"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
+        <a href="#" class="footer-social-link" aria-label="YouTube"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+        <a href="#" class="footer-social-link" aria-label="Twitter / X"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+      </div>
+      <p class="footer-copy">© 2025 Wander With Suzy</p>
+      <a href="#" class="footer-top" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg> Back to top</a>
+    </div>
+  </footer>
+
+  <script>
+    // ── Nav ──────────────────────────────────────────────────
+    const navbar    = document.getElementById('navbar');
+    const hamburger = document.getElementById('navHamburger');
+    const navLinks  = document.getElementById('navLinks');
+
+    window.addEventListener('scroll', () => {
+      navbar.classList.toggle('scrolled', window.scrollY > 60);
+    });
+
+    hamburger.addEventListener('click', () => {
+      hamburger.classList.toggle('open');
+      navLinks.classList.toggle('open');
+    });
+
+    document.querySelectorAll('.nav-close-link').forEach(link => {
+      link.addEventListener('click', () => {
+        hamburger.classList.remove('open');
+        navLinks.classList.remove('open');
+      });
+    });
+
+    // ── Newsletter ───────────────────────────────────────────
+    const form       = document.getElementById('newsletterForm');
+    const emailInput = document.getElementById('emailInput');
+    const errMsg     = document.getElementById('inputError');
+    const defaultEl  = document.getElementById('newsletterDefault');
+    const successEl  = document.getElementById('newsletterSuccess');
+    const dotsEl     = document.getElementById('successDots');
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+
+      const val = emailInput.value.trim();
+      const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+
+      if (!valid) {
+        errMsg.style.display = 'block';
+        emailInput.style.borderColor = '#ef8c8c';
+        return;
+      }
+
+      errMsg.style.display = 'none';
+
+      // Fade out form
+      defaultEl.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+      defaultEl.style.opacity = '0';
+      defaultEl.style.transform = 'translateY(-8px)';
+
+      setTimeout(() => {
+        defaultEl.style.display = 'none';
+
+        // Show success
+        successEl.classList.add('show');
+
+        // Trigger checkmark animations
+        document.getElementById('checkCircle').classList.add('animate');
+        document.getElementById('checkTick').classList.add('animate');
+
+        // Fire dot confetti
+        dotsEl.querySelectorAll('.dot-pop').forEach(dot => {
+          dot.classList.add('animate');
+        });
+      }, 350);
+    });
+
+    emailInput.addEventListener('input', () => {
+      errMsg.style.display = 'none';
+      emailInput.style.borderColor = '';
+    });
+
+    // ── Scroll reveal ─────────────────────────────────────────
+    document.querySelectorAll(
+      '.page-header-eyebrow, .page-header-title, .page-header-sub, ' +
+      '.newsletter-card, .social-eyebrow, .social-title, .social-sub, .social-card'
+    ).forEach(el => el.classList.add('reveal'));
+
+    const revealObs = new IntersectionObserver((entries) => {
+      let delay = 0;
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const d = delay;
+          setTimeout(() => entry.target.classList.add('visible'), d);
+          delay += 80;
+          revealObs.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+  </script>
+</body>
+</html>
